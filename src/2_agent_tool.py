@@ -15,14 +15,14 @@ logger = logging.getLogger(__name__)
 # llama3.2 (3B) tiene soporte de tools muy limitado.
 # Modelos con buen tool calling en Ollama: llama3.1, qwen2.5, mistral
 client = OpenAIChatClient(
-    model_id="qwen2.5",  # ollama pull qwen2.5
+    model_id="qwen2.5:7b",  # ollama pull qwen2.5
     base_url="http://localhost:11434/v1",
     api_key="ollama",
 )
 
 @tool
 def get_weather(
-    city: Annotated[str, Field(description="City name")],
+    city: Annotated[str, Field(description="Nombre de la ciudad para la que se desea obtener el clima")],
 ) -> dict:
     """Devuelve datos meteorológicos para una ciudad: temperatura y descripción."""
     logger.info(f"Obteniendo el clima para {city}")
@@ -40,7 +40,7 @@ def get_weather(
 
 agent = Agent(
     client=client,
-    instructions="Eres un agente informativo. Responde a las preguntas con buena onda.",
+    instructions="Eres un agente de clima que responde a preguntas sobre el clima actual en diferentes ciudades. Usa las herramientas para obtener esta información. Responde en español con buena onda.",
     tools=[get_weather],
 )
 
