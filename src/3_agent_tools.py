@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import logging
 import random
 from typing import Annotated
@@ -37,15 +38,34 @@ def get_weather(
             "description": "Lluvioso",
         }
 
+@tool
+def get_activities(
+    city: Annotated[str, Field(description="Ciudad para la que se desean obtener actividades")],
+    date: Annotated[str, Field(description="Fecha (YYYY-MM-DD) para la que se desean obtener actividades")],
+) -> list[dict]:
+    """Devuelve una lista de actividades para una ciudad y fecha dadas."""
+    logger.info(f"Obteniendo actividades para {city} en {date}")
+    return [
+        {"name": "Senderismo", "location": city},
+        {"name": "Playa", "location": city},
+        {"name": "Museo", "location": city},
+    ]
+
+
+@tool
+def get_current_date() -> str:
+    """Obtiene la fecha actual del sistema en formato YYYY-MM-DD."""
+    logger.info("Obteniendo la fecha actual")
+    return datetime.now().strftime("%Y-%m-%d")
 
 agent = Agent(
     client=client,
-    instructions="Eres un agente de clima que responde a preguntas sobre el clima actual en diferentes ciudades. Usa las herramientas para obtener esta información. Responde en español con buena onda.",
-    tools=[get_weather],
+    instructions="Eres un agente de clima y actividades que responde a preguntas sobre el clima actual y actividades en diferentes ciudades. Usa las herramientas para obtener esta información. Responde en español con buena onda.",
+    tools=[get_weather, get_activities, get_current_date],
 )
 
 async def main() -> None:
-    await run_chat_loop(agent, title="Agente + Tool")
+    await run_chat_loop(agent, title="Agente + Multi-Tools")
 
 
 if __name__ == "__main__":
