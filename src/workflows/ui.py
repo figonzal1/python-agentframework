@@ -67,7 +67,16 @@ def _agent_label(name: str, index: int, total: int) -> Text:
 
 def _extract_agent_turns(output: Any, agents: Sequence["Agent"]) -> list[tuple[str, str]]:
     """Return [(agent_name, text), ...] for every assistant turn in output."""
-    # output is a list of Message objects (full conversation)
+    # AgentExecutorResponse — from WorkflowBuilder nodes
+    if hasattr(output, "agent_response") and hasattr(output, "executor_id"):
+        text = output.agent_response.text or ""
+        # Match executor_id to an agent name; fall back to executor_id itself
+        name = next(
+            (a.name for a in agents if (a.name or "").lower() == output.executor_id.lower()),
+            output.executor_id,
+        )
+        return [(name, text)]
+    # List of Message objects (full conversation) — from SequentialBuilder
     if isinstance(output, list) and output and hasattr(output[0], "role"):
         assistant_texts = [
             m.text for m in output
@@ -82,7 +91,7 @@ def _extract_agent_turns(output: Any, agents: Sequence["Agent"]) -> list[tuple[s
     if hasattr(output, "role") and hasattr(output, "text"):
         name = agents[0].name if agents and agents[0].name else "Agente"
         return [(name, output.text or str(output))]
-    # Plain string — output from a non-agent executor (e.g. publisher with ctx.yield_output)
+    # Plain string — output from ctx.yield_output (e.g. publisher executor)
     if isinstance(output, str):
         return [("Publicado", output)]
     # Fallback
