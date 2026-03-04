@@ -76,7 +76,7 @@ editor = Agent(
     ),
 )
 
-@executor(id="publisher")
+@executor(id="publicador")
 async def publisher(response: AgentExecutorResponse, ctx: WorkflowContext[Never, str]) -> None:
     """Publica contenido desde la salida estructurada del revisor."""
     result = parse_review_decision(response)

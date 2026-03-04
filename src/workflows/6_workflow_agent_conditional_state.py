@@ -58,7 +58,7 @@ reviewer = Agent(
     client=client,
     name="Revisor",
     instructions=(
-        "Eres un revisor de contenido estricto. Evalúa el borrador del escritor. "
+        "Eres un revisor de contenido estricto. Evalúa el borrador del escritor. El contenido debe estar en español. "
         "Si el borrador está listo, define decision=APPROVED e incluye la publicación lista para publicar en post_text. "
         "Si necesita cambios, define decision=REVISION_NEEDED y entrega feedback accionable."
     ),
@@ -100,7 +100,7 @@ async def publisher(_response: AgentExecutorResponse, ctx: WorkflowContext[Never
 # add_edge(reviewer, editor, condition=needs_revision) se activa cuando needs_revision() retorna True.
 # add_edge(editor, reviewer) crea un bucle acotado de revisión-edición.
 workflow = (
-    WorkflowBuilder(start_executor=writer, max_iterations=3)
+    WorkflowBuilder(start_executor=writer, max_iterations=20)
     .add_edge(writer, store_post_text)
     .add_edge(store_post_text, reviewer)
     .add_edge(reviewer, publisher, condition=is_approved)

@@ -65,16 +65,27 @@ def _agent_label(name: str, index: int, total: int) -> Text:
     return t
 
 
-def _extract_agent_turns(output: Any, agents: Sequence["Agent"]) -> list[tuple[str, str]]:
+def _resolve_name(executor_id: str | None, agents: Sequence["Agent"]) -> str:
+    """Resolve a display name from executor_id, matching agent names first."""
+    if not executor_id:
+        return "Agente"
+    return next(
+        (a.name for a in agents if (a.name or "").lower() == executor_id.lower()),
+        executor_id,
+    )
+
+
+def _extract_agent_turns(
+    output: Any,
+    agents: Sequence["Agent"],
+    *,
+    executor_id: str | None = None,
+) -> list[tuple[str, str]]:
     """Return [(agent_name, text), ...] for every assistant turn in output."""
     # AgentExecutorResponse — from WorkflowBuilder nodes
     if hasattr(output, "agent_response") and hasattr(output, "executor_id"):
         text = output.agent_response.text or ""
-        # Match executor_id to an agent name; fall back to executor_id itself
-        name = next(
-            (a.name for a in agents if (a.name or "").lower() == output.executor_id.lower()),
-            output.executor_id,
-        )
+        name = _resolve_name(output.executor_id, agents)
         return [(name, text)]
     # List of Message objects (full conversation) — from SequentialBuilder
     if isinstance(output, list) and output and hasattr(output[0], "role"):
@@ -91,11 +102,11 @@ def _extract_agent_turns(output: Any, agents: Sequence["Agent"]) -> list[tuple[s
     if hasattr(output, "role") and hasattr(output, "text"):
         name = agents[0].name if agents and agents[0].name else "Agente"
         return [(name, output.text or str(output))]
-    # Plain string — output from ctx.yield_output (e.g. publisher executor)
+    # Plain string or fallback — use executor_id from the WorkflowEvent
+    name = _resolve_name(executor_id, agents)
     if isinstance(output, str):
-        return [("Publicado", output)]
-    # Fallback
-    return [("Publicado", str(output))]
+        return [(name, output)]
+    return [(name, str(output))]
 
 
 def _workflow_spinner(name: str) -> Spinner:
@@ -128,13 +139,14 @@ async def run_workflow(
         result = await workflow.run(prompt)
 
     # ── Print each agent's output ─────────────────────────────────────────────
-    outputs = result.get_outputs() if result else []
+    # Use raw events to preserve executor_id for each output
+    output_events = [event for event in result if event.type == "output"] if result else []
     total_agents = len(agents)
 
     # Flatten all outputs into (agent_name, text) turns
     turns: list[tuple[str, str]] = []
-    for output in outputs:
-        turns.extend(_extract_agent_turns(output, agents[len(turns):]))
+    for event in output_events:
+        turns.extend(_extract_agent_turns(event.data, agents[len(turns):], executor_id=event.executor_id))
 
     total = len(turns)
     for i, (name, text) in enumerate(turns):
