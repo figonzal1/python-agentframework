@@ -23,6 +23,7 @@ dependencies = [
     "agent-framework-redis @ git+https://github.com/microsoft/agent-framework.git@11628c3166a1845683c5aef1e0d389eb862bcbaa#subdirectory=python/packages/redis",
     "agent-framework-mem0 @ git+https://github.com/microsoft/agent-framework.git@11628c3166a1845683c5aef1e0d389eb862bcbaa#subdirectory=python/packages/mem0",
     "agent-framework-azure-ai-search @ git+https://github.com/microsoft/agent-framework.git@11628c3166a1845683c5aef1e0d389eb862bcbaa#subdirectory=python/packages/azure-ai-search",
+    "agent-framework-orchestrations @ git+https://github.com/microsoft/agent-framework.git@11628c3166a1845683c5aef1e0d389eb862bcbaa#subdirectory=python/packages/orchestrations",
 ]
 
 [tool.uv]

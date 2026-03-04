@@ -6,7 +6,7 @@ from agent_framework.openai import OpenAIChatClient
 from ui import run_chat_loop
 
 client = OpenAIChatClient(
-    model_id="llama3.2:1b",
+    model_id="qwen2.5:7b",
     base_url="http://localhost:11434/v1",
     api_key="ollama",
 )
