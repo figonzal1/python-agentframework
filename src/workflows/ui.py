@@ -82,13 +82,11 @@ def _extract_agent_turns(output: Any, agents: Sequence["Agent"]) -> list[tuple[s
     if hasattr(output, "role") and hasattr(output, "text"):
         name = agents[0].name if agents and agents[0].name else "Agente"
         return [(name, output.text or str(output))]
-    # Plain string
+    # Plain string — output from a non-agent executor (e.g. publisher with ctx.yield_output)
     if isinstance(output, str):
-        name = agents[0].name if agents and agents[0].name else "Agente"
-        return [(name, output)]
+        return [("Publicado", output)]
     # Fallback
-    name = agents[0].name if agents and agents[0].name else "Agente"
-    return [(name, str(output))]
+    return [("Publicado", str(output))]
 
 
 def _workflow_spinner(name: str) -> Spinner:
