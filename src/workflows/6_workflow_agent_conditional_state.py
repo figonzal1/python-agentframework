@@ -14,7 +14,6 @@ class ReviewDecision(BaseModel):
 
     decision: Literal["APPROVED", "REVISION_NEEDED"]
     feedback: str
-    post_text: str | None = None
 
 # Helper de parseo para mantener pequeñas y explícitas las funciones de condición.
 def parse_review_decision(message: Any) -> ReviewDecision | None:
